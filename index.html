@@ -7,18 +7,18 @@
 </head>
 <body style="font-family: sans-serif; padding: 20px;">
 
-    <h2>Add 7:30 to a Time</h2>
+    <h2>Calculate Sequential Times</h2>
     
     <label for="startTime">Select Start Time:</label>
     <input type="time" id="startTime" value="12:00">
     
-    <button onclick="calculateNewTime()">Calculate</button>
+    <button onclick="calculateNewTimes()">Calculate</button>
 
     <h3 id="result"></h3>
 
     <script>
-        function calculateNewTime() {
-            // 1. Get the customer's input value
+        function calculateNewTimes() {
+            // 1. Get the input value
             const inputVal = document.getElementById('startTime').value;
             
             if (!inputVal) {
@@ -27,26 +27,39 @@
             }
 
             // 2. Separate hours and minutes
-            let [inputHours, inputMinutes] = inputVal.split(':').map(Number);
+            let [startHours, startMinutes] = inputVal.split(':').map(Number);
 
-            // 3. Add 7 hours and 30 minutes
-            let addedHours = 7;
-            let addedMinutes = 30;
-
-            let totalMinutes = inputMinutes + addedMinutes;
-            let carryHours = Math.floor(totalMinutes / 60);
-            
-            let finalMinutes = totalMinutes % 60;
-            let finalHours = (inputHours + addedHours + carryHours) % 24;
-
-            // 4. Format the result to always show two digits (e.g., 09 instead of 9)
+            // 3. Helper function to format and handle clock rollover (24 hours)
             const formatTime = (h, m) => {
-                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                let totalMin = m % 60;
+                let carryHr = Math.floor(m / 60);
+                
+                let finalMin = totalMin < 0 ? totalMin + 60 : totalMin;
+                let finalHr = totalMin < 0 ? (h + carryHr - 1) % 24 : (h + carryHr) % 24;
+                
+                // Ensure hours also handle negative rollovers
+                if (finalHr < 0) finalHr += 24;
+
+                return `${String(finalHr).padStart(2, '0')}:${String(finalMin).padStart(2, '0')}`;
             };
 
-            // 5. Output the result
-            const resultString = `New Time: ${formatTime(finalHours, finalMinutes)}`;
-            document.getElementById('result').innerText = resultString;
+            // 4. Calculate Time 2: Input time + 7h 30m
+            let t2Hours = startHours + 7;
+            let t2Minutes = startMinutes + 30;
+            let time2 = formatTime(t2Hours, t2Minutes);
+
+            // 5. Calculate Time 3: Time 2 - 5m
+            // Splitting Time 2 back into its calculated H & M to cleanly subtract
+            let [t2FinalHours, t2FinalMinutes] = time2.split(':').map(Number);
+            let time3 = formatTime(t2FinalHours, t2FinalMinutes - 5);
+
+            // 6. Output the results
+            const resultString = `
+                Start Time: ${inputVal} <br>
+                Time 2 (+7h 30m): ${time2} <br>
+                Time 3 (-5m from Time 2): ${time3}
+            `;
+            document.getElementById('result').innerHTML = resultString;
         }
     </script>
 </body>
